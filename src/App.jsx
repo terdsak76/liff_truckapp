@@ -18,7 +18,7 @@ function App() {
   const initLIFF = async () => {
     try {
       await liff.init({
-        liffId: "YOUR_LIFF_ID",
+        liffId: "2010341226-BWVn7RwF",
       });
 
       if (!liff.isLoggedIn()) {

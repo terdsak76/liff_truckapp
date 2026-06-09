@@ -1,0 +1,6 @@
+channel id: 2010341226
+Channel name: DeRIVE
+channel secret: 2f7805ceb4a1170091b9d1359fd406c9
+
+liff id: 2010341226-BWVn7RwF
+liff url: https://liff.line.me/2010341226-BWVn7RwF
