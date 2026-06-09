@@ -174,7 +174,7 @@ export async function syncData() {
             synced: true
           };
 
-          const tx = db.transaction("logs", "readwrite");
+          const tx = db.transaction("gps_logs", "readwrite");
 
           await tx.objectStore("logs").put(updatedLog);
 
