@@ -7,9 +7,10 @@ const API_URL =
 
 let trackingStarted = false;
 
+let isSyncing = false;
+
 export async function startTracking(driverId) {
 
-  // Prevent duplicate intervals
   if (trackingStarted) {
     return;
   }
@@ -21,7 +22,7 @@ export async function startTracking(driverId) {
   // Run immediately once
   await collectGPS(driverId);
 
-  // Then run every 1 minute
+  // Run every minute
   setInterval(async () => {
 
     await collectGPS(driverId);
@@ -58,26 +59,33 @@ async function collectGPS(driverId) {
 
         console.log("GPS Saved:", gpsData);
 
-        // Save locally
         const db = await dbPromise;
 
         await db.add("gps_logs", gpsData);
 
-        // Sync immediately if online
+        // Only sync if online
         if (navigator.onLine) {
+
           await syncData();
+
         }
 
       } catch (err) {
 
-        console.error("GPS save failed:", err);
+        console.error(
+          "GPS save failed:",
+          err
+        );
 
       }
     },
 
     (err) => {
 
-      console.error("GPS error:", err);
+      console.error(
+        "GPS error:",
+        err
+      );
 
     },
 
@@ -91,27 +99,48 @@ async function collectGPS(driverId) {
 
 export async function syncData() {
 
+  // Prevent duplicate sync execution
+  if (isSyncing) {
+
+    console.log("Sync already running");
+
+    return;
+  }
+
+  isSyncing = true;
+
+  console.log("Starting sync...");
+
   try {
 
     const db = await dbPromise;
 
-    const tx = db.transaction("gps_logs", "readwrite");
-
-    const store = tx.objectStore("gps_logs");
-
-    const allLogs = await store.getAll();
-
-    const unsynced = allLogs.filter(
-      (x) => !x.synced
+    const tx = db.transaction(
+      "gps_logs",
+      "readwrite"
     );
 
-    console.log("Unsynced logs:", unsynced.length);
+    const store = tx.objectStore(
+      "gps_logs"
+    );
+
+    const allLogs =
+      await store.getAll();
+
+    // Upload ONLY unsynced records
+    const unsynced = allLogs.filter(
+      (x) => x.synced === false
+    );
+
+    console.log(
+      "Unsynced logs:",
+      unsynced.length
+    );
 
     for (const log of unsynced) {
 
       try {
 
-        // Do not send local-only fields
         const payload = {
           driver_id: log.driver_id,
 
@@ -124,30 +153,36 @@ export async function syncData() {
           timestamp: log.timestamp,
         };
 
-        const response = await fetch(API_URL, {
+        const response = await fetch(
+          API_URL,
+          {
+            method: "POST",
 
-          method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(payload),
-
-        });
+            body: JSON.stringify(payload),
+          }
+        );
 
         if (response.ok) {
 
+          // Mark as synced
           log.synced = true;
 
           await store.put(log);
 
-          console.log("Synced:", log);
+          console.log(
+            "Synced:",
+            log.timestamp
+          );
 
         } else {
 
           console.error(
-            "API Error:",
+            "API error:",
             response.status
           );
 
@@ -167,16 +202,30 @@ export async function syncData() {
 
   } catch (err) {
 
-    console.error("Sync process failed:", err);
+    console.error(
+      "Sync process failed:",
+      err
+    );
+
+  } finally {
+
+    isSyncing = false;
+
+    console.log("Sync finished");
 
   }
 }
 
-// Auto sync when internet comes back
-window.addEventListener("online", async () => {
+// Auto sync when connection returns
+window.addEventListener(
+  "online",
+  async () => {
 
-  console.log("Internet restored. Syncing...");
+    console.log(
+      "Internet restored"
+    );
 
-  await syncData();
+    await syncData();
 
-});
+  }
+);
