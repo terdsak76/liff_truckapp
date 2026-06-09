@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import liff from "@line/liff";
+import { startTracking, syncData  } from "./gpsTracker";
 
 function App() {
   const [profile, setProfile] = useState(null);
@@ -13,6 +14,19 @@ function App() {
 
   useEffect(() => {
     initLIFF();
+    startTracking();
+
+
+    const handleOnline = () => {
+      syncData();
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+
   }, []);
 
   const initLIFF = async () => {

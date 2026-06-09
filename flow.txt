@@ -1,0 +1,12 @@
+
+Driver opens LIFF
+      ↓
+LINE Login Authentication
+      ↓
+Retrieve profile
+      ↓
+Load assigned deliveries
+      ↓
+Update status
+      ↓
+Save to backend

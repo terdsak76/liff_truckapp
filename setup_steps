@@ -1,0 +1,46 @@
+Setup Steps
+
+
+1. Create LINE Login Channel
+LINE Developers Console
+Create:
+Provider
+LINE Login Channel
+
+NOT: Messaging API channel
+
+2. Enable LIFF
+Inside LINE Login channel:
+
+Open “LIFF”
+Add LIFF App
+
+Example:
+
+Endpoint URL:
+https://liff-truckapp.vercel.app/
+
+Scopes:
+
+profile
+openid
+
+3. Add Callback URL
+In LINE Login settings:
+https://liff-truckapp.vercel.app/
+
+4. Replace LIFF ID
+liff id: 2010341226-BWVn7RwF
+
+5. Deploy app on Vercel
+
+
+
+
+3. Replace:
+liff id: 2010341226-BWVn7RwF
+with your actual LIFF ID.
+
+4. host the frontend at Vercel
+
+
