@@ -8,12 +8,12 @@ export async function startTracking() {
       async (position) => {
 
         const gpsData = {
+          driver_id: profile.userId,
           lat: position.coords.latitude,
           lon: position.coords.longitude,
           speed: position.coords.speed || 0,
           accuracy: position.coords.accuracy,
           timestamp: new Date().toISOString(),
-          synced: false,
         };
 
         console.log("GPS Saved:", gpsData);
