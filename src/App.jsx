@@ -10,7 +10,8 @@ function App() {
 
   const [profile, setProfile] = useState(null);
 
-  const [deliveries, setDeliveries] = useState([]);
+  const [status, setStatus] =
+    useState("Initializing LIFF...");
 
   useEffect(() => {
 
@@ -38,30 +39,43 @@ function App() {
 
     try {
 
+      setStatus("Initializing...");
+
       await liff.init({
         liffId: "2010341226-BWVn7RwF",
       });
 
+      setStatus("LIFF initialized");
+
       if (!liff.isLoggedIn()) {
+
+        setStatus("Logging in...");
 
         liff.login();
 
         return;
       }
 
-      // ✅ await is valid here
+      setStatus("Getting profile...");
+
       const userProfile =
         await liff.getProfile();
 
+      console.log(userProfile);
+
       setProfile(userProfile);
 
-      // Start GPS tracking
+      setStatus("Tracking started");
+
       startTracking(userProfile.userId);
 
     } catch (err) {
 
       console.error(err);
 
+      setStatus(
+        "ERROR: " + err.message
+      );
     }
   };
 
@@ -71,28 +85,30 @@ function App() {
 
       <h1>🚚 Truck Tracker</h1>
 
-      {profile ? (
+      <p>{status}</p>
+
+      {profile && (
 
         <div>
 
           <img
             src={profile.pictureUrl}
-            alt=""
+            alt="profile"
             width="80"
             style={{
               borderRadius: "50%",
             }}
           />
 
-          <p>
+          <h3>
             {profile.displayName}
+          </h3>
+
+          <p>
+            {profile.userId}
           </p>
 
         </div>
-
-      ) : (
-
-        <p>Loading...</p>
 
       )}
 
