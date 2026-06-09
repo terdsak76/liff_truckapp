@@ -21,7 +21,7 @@ Endpoint URL:
 https://liff-truckapp.vercel.app/
 
 Scopes:
-
+enable both
 profile
 openid
 
@@ -31,16 +31,19 @@ https://liff-truckapp.vercel.app/
 
 4. Replace LIFF ID
 liff id: 2010341226-BWVn7RwF
+with your actual LIFF ID.
 
 5. Deploy app on Vercel
 
+6. set gps tracker api
+point to ngrok https
+API_URL =
+https://pandemic-quality-preview.ngrok-free.dev/gps
 
 
 
-3. Replace:
-liff id: 2010341226-BWVn7RwF
-with your actual LIFF ID.
 
-4. host the frontend at Vercel
+
+
 
 

@@ -9,6 +9,7 @@ import {
 function App() {
 
   const [profile, setProfile] = useState(null);
+  const [job, setJob] = useState(null);
 
   const [status, setStatus] =
     useState("Initializing LIFF...");
@@ -79,6 +80,23 @@ function App() {
     }
   };
 
+  const getCurrentJob = async () => {
+    if (!profile) return;
+    try {
+      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/current_job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ line_user_id: profile.userId }),
+      });
+      const data = await response.json();
+      setJob(data);
+    } catch (error) {
+      console.error('Error getting current job:', error);
+    }
+  };
+
   return (
 
     <div style={{ padding: 20 }}>
@@ -108,8 +126,22 @@ function App() {
             {profile.userId}
           </p>
 
+          <button onClick={getCurrentJob}>
+            Get Current Job
+          </button>
+
         </div>
 
+      )}
+
+      {job && (
+        <div>
+          <h2>Current Job</h2>
+          <p>Job Number: {job.job_number}</p>
+          <p>Customer Name: {job.customer_name}</p>
+          <p>Pickup Location: {job.pickup_location}</p>
+          <p>Delivery Location: {job.delivery_location}</p>
+        </div>
       )}
 
     </div>
