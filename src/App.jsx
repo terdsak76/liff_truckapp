@@ -6,6 +6,10 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [deliveries, setDeliveries] = useState([]);
 
+  const profile = await liff.getProfile();
+  setProfile(profile);
+
+
   const [form, setForm] = useState({
     truckNo: "",
     destination: "",
@@ -14,7 +18,7 @@ function App() {
 
   useEffect(() => {
     initLIFF();
-    startTracking();
+    startTracking(profile.userId);
 
 
     const handleOnline = () => {
