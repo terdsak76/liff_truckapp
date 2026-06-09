@@ -169,15 +169,18 @@ export async function syncData() {
 
         if (response.ok) {
 
-          // Mark as synced
-          log.synced = true;
+          const updatedLog = {
+            ...log,
+            synced: true
+          };
 
-          await store.put(log);
+          const tx = db.transaction("logs", "readwrite");
 
-          console.log(
-            "Synced:",
-            log.timestamp
-          );
+          await tx.objectStore("logs").put(updatedLog);
+
+          await tx.done;
+
+          console.log("Synced:", log.timestamp);
 
         } else {
 
