@@ -166,8 +166,9 @@ function App() {
         }),
       });
       if (response.ok) {
+        const updatedJob = await response.json();
+        setJob(updatedJob); // Update job state with started_at
         alert('Job started successfully!');
-        // Optionally, update job status in UI or refetch current job
       } else {
         const errorData = await response.json();
         alert(`Failed to start job: ${errorData.detail || response.statusText}`);
@@ -175,6 +176,33 @@ function App() {
     } catch (error) {
       console.error('Error starting job:', error);
       alert('An error occurred while trying to start the job.');
+    }
+  };
+
+  const finishJob = async () => {
+    if (!profile || !job) return;
+    try {
+      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/log_job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          line_user_id: profile.userId,
+          id: job.id,
+          status:"finish",
+        }),
+      });
+      if (response.ok) {
+        alert('Job finished successfully!');
+        setJob(null); // Clear the job from UI
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to finish job: ${errorData.detail || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error finishing job:', error);
+      alert('An error occurred while trying to finish the job.');
     }
   };
 
@@ -232,9 +260,18 @@ function App() {
             <p>Customer Name: {job.customer_name}</p>
             <p>Pickup Location: {job.pickup_location}</p>
             <p>Delivery Location: {job.delivery_location}</p>
-            <button onClick={startJob} style={{ marginTop: '10px', backgroundColor: 'blue', color: 'white' }}>
-              Start Job
-            </button>
+            {job.started_at && (
+              <p>Started At: {new Date(job.started_at).toLocaleString()}</p>
+            )}
+            {job.started_at ? (
+              <button onClick={finishJob} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white' }}>
+                Finish Job
+              </button>
+            ) : (
+              <button onClick={startJob} style={{ marginTop: '10px', backgroundColor: 'blue', color: 'white' }}>
+                Start Job
+              </button>
+            )}
           </div>
         ) : (
           <p>No active job.</p>
