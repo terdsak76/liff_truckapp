@@ -12,10 +12,12 @@ function App() {
   const [job, setJob] = useState(null);
   const [pendingJob, setPendingJob] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
-
   // Fuel states
   const [fuelForm, setFuelForm] = useState(null);
   const [fuelData, setFuelData] = useState({ liters: '', amount: '' });
+  //photo
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const callCallCenter = () => {
     liff.openWindow({
@@ -258,6 +260,51 @@ function App() {
     }
   };
 
+  const takePhoto = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      // Use input file for simplicity in LIFF
+      document.getElementById('photoInput').click();
+    } catch (error) {
+      console.error('Camera error:', error);
+    }
+  };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadPhoto = async () => {
+    if (!photo || !profile) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', photo);
+      formData.append('line_user_id', profile.userId);
+      formData.append('job_id', job?.id || '');
+
+      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/upload_photo', {
+        method: 'POST',
+        body: formData, // No Content-Type header — let browser set it with boundary
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Photo uploaded successfully!');
+        setPhoto(null);
+        setPhotoPreview(null);
+      } else {
+        alert('Failed to upload photo');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('An error occurred while uploading photo');
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
 
@@ -338,6 +385,16 @@ function App() {
       {/* ── JOB TAB ── */}
       {activeTab === 'job' && (
         <div>
+          {/* Hidden file input */}
+          <input
+            id="photoInput"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handlePhotoChange}
+          />
+
           {pendingJob && (
             <div style={{ border: '2px solid orange', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
               <h2>Pending Job Offer</h2>
@@ -378,6 +435,30 @@ function App() {
                 <button onClick={startJob} style={{ marginTop: '10px', backgroundColor: 'blue', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
                   ▶️ Start Job
                 </button>
+              )}
+
+              {/* ── Photo Section ── */}
+              <hr style={{ margin: '15px 0' }} />
+              <button
+                onClick={() => document.getElementById('photoInput').click()}
+                style={{ backgroundColor: '#6c757d', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px', fontSize: '16px' }}>
+                📷 Take Photo
+              </button>
+
+              {photoPreview && (
+                <div style={{ marginTop: '10px' }}>
+                  <img src={photoPreview} alt="preview" style={{ width: '100%', borderRadius: '5px' }} />
+                  <button
+                    onClick={uploadPhoto}
+                    style={{ marginTop: '10px', backgroundColor: 'green', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
+                    ✅ Upload Photo
+                  </button>
+                  <button
+                    onClick={() => { setPhoto(null); setPhotoPreview(null); }}
+                    style={{ marginTop: '5px', backgroundColor: 'gray', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
+                    ❌ Cancel
+                  </button>
+                </div>
               )}
             </div>
           ) : (
