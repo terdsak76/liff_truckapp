@@ -11,10 +11,15 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [job, setJob] = useState(null);
   const [pendingJob, setPendingJob] = useState(null);
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Fuel states
+  const [fuelForm, setFuelForm] = useState(null);
+  const [fuelData, setFuelData] = useState({ liters: '', amount: '' });
 
   const callCallCenter = () => {
     liff.openWindow({
-      url: `tel:+66814926996`, // admin's phone number
+      url: `tel:+66814926996`,
       external: true,
     });
   };
@@ -48,7 +53,7 @@ function App() {
   useEffect(() => {
     if (profile) {
       getPendingJob();
-      getCurrentJob(); // Also fetch current job on load
+      getCurrentJob();
     }
   }, [profile]);
 
@@ -126,15 +131,14 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          dispatch_id: pendingJob.id, // Assuming the job object has an 'id'
+          dispatch_id: pendingJob.id,
           action: action,
           line_user_id: profile.userId,
         }),
       });
-      // After responding, clear the pending job and refresh other jobs
       setPendingJob(null);
       alert(`Job ${action}ed successfully!`);
-      getCurrentJob(); // Refresh current job after action
+      getCurrentJob();
     } catch (error) {
       console.error('Error responding to job:', error);
     }
@@ -154,7 +158,7 @@ function App() {
       setJob(data);
     } catch (error) {
       console.error('Error getting current job:', error);
-      setJob(null); // Clear job on error
+      setJob(null);
     }
   };
 
@@ -169,12 +173,12 @@ function App() {
         body: JSON.stringify({
           line_user_id: profile.userId,
           id: job.id,
-          status:"start",
+          status: "start",
         }),
       });
       if (response.ok) {
         const updatedJob = await response.json();
-        setJob(updatedJob); // Update job state with started_at
+        setJob(updatedJob);
         alert('Job started successfully!');
       } else {
         const errorData = await response.json();
@@ -197,12 +201,12 @@ function App() {
         body: JSON.stringify({
           line_user_id: profile.userId,
           id: job.id,
-          status:"finish",
+          status: "finish",
         }),
       });
       if (response.ok) {
         alert('Job finished successfully!');
-        setJob(null); // Clear the job from UI
+        setJob(null);
       } else {
         const errorData = await response.json();
         alert(`Failed to finish job: ${errorData.detail || response.statusText}`);
@@ -213,31 +217,107 @@ function App() {
     }
   };
 
-  return (
+  const scanFuelQR = async () => {
+    try {
+      const result = await liff.scanCodeV2();
+      const scannedData = JSON.parse(result.value);
+      setFuelForm(scannedData);
+    } catch (error) {
+      console.error('QR scan error:', error);
+      alert('Failed to scan QR code');
+    }
+  };
 
+  const submitFuel = async () => {
+    if (!fuelForm || !fuelData.liters || !fuelData.amount) {
+      alert('Please fill in all fields');
+      return;
+    }
+    try {
+      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/log_fuel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          line_user_id: profile.userId,
+          station_id: fuelForm.station_id,
+          station_name: fuelForm.station_name,
+          job_id: job?.id || null,
+          liters: parseFloat(fuelData.liters),
+          amount: parseFloat(fuelData.amount),
+        }),
+      });
+      if (response.ok) {
+        alert('Fuel log saved successfully!');
+        setFuelForm(null);
+        setFuelData({ liters: '', amount: '' });
+      } else {
+        alert('Failed to save fuel log');
+      }
+    } catch (error) {
+      console.error('Error saving fuel log:', error);
+    }
+  };
+
+  return (
     <div style={{ padding: 20 }}>
 
       <h1>🚚 Truck Tracker</h1>
-
       <p>{status}</p>
 
+      {/* Profile — always visible at top */}
       {profile && (
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', gap: '10px' }}>
           <img
             src={profile.pictureUrl}
             alt="profile"
-            width="80"
-            style={{
-              borderRadius: "50%",
-            }}
+            width="50"
+            style={{ borderRadius: "50%" }}
           />
-          <h3>
-            {profile.displayName}
-          </h3>
-          <p>
-            {profile.userId}
-          </p>
-          {/* Call Center Button */}
+          <div>
+            <strong>{profile.displayName}</strong>
+            <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{profile.userId}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Bar */}
+      <div style={{
+        display: 'flex',
+        borderBottom: '2px solid #ccc',
+        marginBottom: '15px',
+        position: 'sticky',
+        top: 0,
+        backgroundColor: 'white',
+        zIndex: 100
+      }}>
+        {[
+          { id: 'home', label: '🏠 Home' },
+          { id: 'job', label: '📦 Job' },
+          { id: 'fuel', label: '⛽ Fuel' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flex: 1,
+              padding: '10px',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '3px solid #00B900' : '3px solid transparent',
+              backgroundColor: 'white',
+              color: activeTab === tab.id ? '#00B900' : '#666',
+              fontWeight: activeTab === tab.id ? 'bold' : 'normal',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── HOME TAB ── */}
+      {activeTab === 'home' && (
+        <div>
           <button
             onClick={callCallCenter}
             style={{
@@ -255,50 +335,109 @@ function App() {
         </div>
       )}
 
-      {pendingJob && (
-        <div style={{ border: '2px solid orange', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
-          <h2>Pending Job Offer</h2>
-          <p>Job Number: {pendingJob.job_number}</p>
-          <p>Customer: {pendingJob.customer_name}</p>
-          <p>Pickup: {pendingJob.pickup_location}</p>
-          <p>Delivery: {pendingJob.delivery_location}</p>
-          <button onClick={() => handleJobResponse('accept')} style={{ marginRight: '10px', backgroundColor: 'green', color: 'white' }}>
-            Accept
+      {/* ── JOB TAB ── */}
+      {activeTab === 'job' && (
+        <div>
+          {pendingJob && (
+            <div style={{ border: '2px solid orange', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
+              <h2>Pending Job Offer</h2>
+              <p>Job Number: {pendingJob.job_number}</p>
+              <p>Customer: {pendingJob.customer_name}</p>
+              <p>Pickup: {pendingJob.pickup_location}</p>
+              <p>Delivery: {pendingJob.delivery_location}</p>
+              <button onClick={() => handleJobResponse('accept')} style={{ marginRight: '10px', backgroundColor: 'green', color: 'white', padding: '8px 15px', border: 'none', borderRadius: '5px' }}>
+                ✅ Accept
+              </button>
+              <button onClick={() => handleJobResponse('reject')} style={{ backgroundColor: 'red', color: 'white', padding: '8px 15px', border: 'none', borderRadius: '5px' }}>
+                ❌ Reject
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={getCurrentJob}
+            style={{ padding: '10px', width: '100%', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '5px', cursor: 'pointer' }}>
+            🔄 Refresh Current Job
           </button>
-          <button onClick={() => handleJobResponse('reject')} style={{ backgroundColor: 'red', color: 'white' }}>
-            Reject
-          </button>
+
+          {job && job.job_number ? (
+            <div style={{ border: '2px solid #00B900', padding: '10px', borderRadius: '5px' }}>
+              <h2>Current Job</h2>
+              <p>Job Number: {job.job_number}</p>
+              <p>Customer Name: {job.customer_name}</p>
+              <p>Pickup Location: {job.pickup_location}</p>
+              <p>Delivery Location: {job.delivery_location}</p>
+              {job.started_at && (
+                <p>Started At: {new Date(job.started_at).toLocaleString()}</p>
+              )}
+              {job.started_at ? (
+                <button onClick={finishJob} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
+                  🏁 Finish Job
+                </button>
+              ) : (
+                <button onClick={startJob} style={{ marginTop: '10px', backgroundColor: 'blue', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
+                  ▶️ Start Job
+                </button>
+              )}
+            </div>
+          ) : (
+            <p>No active job.</p>
+          )}
         </div>
       )}
 
-      <div>
-        <button onClick={getCurrentJob}>
-          Refresh Current Job
-        </button>
-        {job && job.job_number ? (
-          <div>
-            <h2>Current Job</h2>
-            <p>Job Number: {job.job_number}</p>
-            <p>Customer Name: {job.customer_name}</p>
-            <p>Pickup Location: {job.pickup_location}</p>
-            <p>Delivery Location: {job.delivery_location}</p>
-            {job.started_at && (
-              <p>Started At: {new Date(job.started_at).toLocaleString()}</p>
-            )}
-            {job.started_at ? (
-              <button onClick={finishJob} style={{ marginTop: '10px', backgroundColor: 'red', color: 'white' }}>
-                Finish Job
+      {/* ── FUEL TAB ── */}
+      {activeTab === 'fuel' && (
+        <div>
+          <button
+            onClick={scanFuelQR}
+            style={{
+              backgroundColor: '#ff8c00',
+              color: 'white',
+              padding: '10px',
+              width: '100%',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}>
+            ⛽ Scan Fuel QR
+          </button>
+
+          {fuelForm && (
+            <div style={{ border: '2px solid orange', padding: '15px', marginTop: '10px', borderRadius: '5px' }}>
+              <h3>⛽ Fuel Filling</h3>
+              <p>Station: {fuelForm.station_name}</p>
+              <p>Station ID: {fuelForm.station_id}</p>
+              <input
+                type="number"
+                placeholder="Liters"
+                value={fuelData.liters}
+                onChange={(e) => setFuelData({ ...fuelData, liters: e.target.value })}
+                style={{ display: 'block', width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
+              />
+              <input
+                type="number"
+                placeholder="Amount (THB)"
+                value={fuelData.amount}
+                onChange={(e) => setFuelData({ ...fuelData, amount: e.target.value })}
+                style={{ display: 'block', width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
+              />
+              <button
+                onClick={submitFuel}
+                style={{ backgroundColor: 'green', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px' }}>
+                ✅ Submit
               </button>
-            ) : (
-              <button onClick={startJob} style={{ marginTop: '10px', backgroundColor: 'blue', color: 'white' }}>
-                Start Job
+              <button
+                onClick={() => { setFuelForm(null); setFuelData({ liters: '', amount: '' }); }}
+                style={{ backgroundColor: 'gray', color: 'white', padding: '10px', width: '100%', border: 'none', borderRadius: '5px', marginTop: '5px' }}>
+                ❌ Cancel
               </button>
-            )}
-          </div>
-        ) : (
-          <p>No active job.</p>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
