@@ -154,14 +154,15 @@ function App() {
   const startJob = async () => {
     if (!profile || !job) return;
     try {
-      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/start_job', {
+      const response = await fetch('https://pandemic-quality-preview.ngrok-free.dev/log_job', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           line_user_id: profile.userId,
-          job_number: job.job_number,
+          id: job.id,
+          status:"start",
         }),
       });
       if (response.ok) {
