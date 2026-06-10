@@ -12,6 +12,13 @@ function App() {
   const [job, setJob] = useState(null);
   const [pendingJob, setPendingJob] = useState(null);
 
+  const callCallCenter = () => {
+    liff.openWindow({
+      url: `tel:+66814926996`, // admin's phone number
+      external: true,
+    });
+  };
+
   const [status, setStatus] =
     useState("Initializing LIFF...");
 
@@ -230,6 +237,21 @@ function App() {
           <p>
             {profile.userId}
           </p>
+          {/* Call Center Button */}
+          <button
+            onClick={callCallCenter}
+            style={{
+              marginTop: '10px',
+              backgroundColor: '#00B900',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              border: 'none',
+              fontSize: '16px',
+              width: '100%'
+            }}>
+            📞 Call Center
+          </button>
         </div>
       )}
 
