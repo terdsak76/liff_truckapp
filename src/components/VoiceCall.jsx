@@ -41,7 +41,8 @@ export default function VoiceCall({ channelName, token, profile }) {
         body: JSON.stringify({
             channelName,
             idToken: liff.getIDToken(),
-            displayName: profile.displayName
+            displayName: profile.displayName,
+            line_user_id: profile.userId
         })
     });
     await client.join(APP_ID, channelName, token);
