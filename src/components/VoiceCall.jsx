@@ -6,7 +6,7 @@ const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 const APP_ID = import.meta.env.VITE_AGORA_APP_ID
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
-export default function VoiceCall({ channelName, token }) {
+export default function VoiceCall({ channelName, token, profile }) {
   const [inCall, setInCall] = useState(false);
   const [localTrack, setLocalTrack] = useState(null);
 

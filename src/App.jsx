@@ -399,7 +399,7 @@ function App() {
           </button>
           {/* ✅ Agora voice call — shows when token is ready */}
           {agoraToken && (
-            <VoiceCall channelName={channelName} token={agoraToken} />
+            <VoiceCall channelName={channelName} token={agoraToken} profile={profile} />
           )}
         </div>
       )}
