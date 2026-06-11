@@ -100,7 +100,7 @@ function App() {
       const channel = `support_${userProfile.userId}`;
       setChannelName(channel);
 
-      const res = await fetch('/api/agora-token', {
+      const res = await fetch('https://pandemic-quality-preview.ngrok-free.dev/api/agora-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
