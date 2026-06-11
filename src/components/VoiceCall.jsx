@@ -29,6 +29,10 @@ export default function VoiceCall({ channelName, token, profile }) {
   async function startCall() {
     const hasPermission = await checkMicPermission();
     if (!hasPermission) return;
+    console.log('--- Call Debug ---')
+    console.log('APP_ID:', APP_ID)
+    console.log('channelName:', channelName)
+    console.log('token:', token)
 
     // ✅ Tell backend user is waiting
     await fetch('https://pandemic-quality-preview.ngrok-free.dev/api/call/start', {
@@ -40,7 +44,6 @@ export default function VoiceCall({ channelName, token, profile }) {
             displayName: profile.displayName
         })
     });
-    console.log('APP_ID:', APP_ID)
     await client.join(APP_ID, channelName, token);
     const mic = await AgoraRTC.createMicrophoneAudioTrack();
     await client.publish(mic);
