@@ -5,6 +5,7 @@ import liff from '@line/liff'
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 const APP_ID = import.meta.env.VITE_AGORA_APP_ID
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+APP_ID="2902d7480b1343ecae1389d10639ea6a"
 
 export default function VoiceCall({ channelName, token, profile }) {
   const [inCall, setInCall] = useState(false);
@@ -40,7 +41,7 @@ export default function VoiceCall({ channelName, token, profile }) {
             displayName: profile.displayName
         })
     });
-
+    console.log('APP_ID:', APP_ID)
     await client.join(APP_ID, channelName, token);
     const mic = await AgoraRTC.createMicrophoneAudioTrack();
     await client.publish(mic);
