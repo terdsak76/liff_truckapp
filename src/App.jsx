@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import liff from "@line/liff";
-
+import VoiceCall from './components/VoiceCall'
 import {
   startTracking,
   syncData,
