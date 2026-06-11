@@ -19,6 +19,10 @@ function App() {
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
+  //call
+  const [channelName, setChannelName] = useState('');
+  const [agoraToken, setAgoraToken] = useState('');
+
   const callCallCenter = () => {
     liff.openWindow({
       url: `tel:+66814926996`,
@@ -92,6 +96,20 @@ function App() {
       setStatus("Tracking started");
 
       startTracking(userProfile.userId);
+
+      const channel = `support_${userProfile.userId}`;
+      setChannelName(channel);
+
+      const res = await fetch('/api/agora-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelName: channel,
+          idToken: liff.getIDToken()
+        })
+      });
+      const { token } = await res.json();
+      setAgoraToken(token);
 
     } catch (err) {
 
@@ -379,6 +397,10 @@ function App() {
             }}>
             📞 Call Center
           </button>
+          {/* ✅ Agora voice call — shows when token is ready */}
+          {agoraToken && (
+            <VoiceCall channelName={channelName} token={agoraToken} />
+          )}
         </div>
       )}
 

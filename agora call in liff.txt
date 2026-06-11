@@ -1,0 +1,27 @@
+Channel "user_uid_001"  →  User A + Admin
+Channel "user_uid_002"  →  User B + Admin
+Channel "user_uid_003"  →  User C + Admin
+
+
+App.jsx
+  │
+  ├── handles LIFF init & login
+  ├── gets LINE userId → builds channelName
+  ├── fetches Agora token from backend
+  │
+  └── passes channelName + token down to
+            │
+        VoiceCall.jsx
+              │
+              ├── checkMicPermission()
+              ├── startCall()  ← button onClick
+              └── endCall()    ← button onClick
+
+File Structure
+src/
+  App.jsx               ← LIFF init, token fetch
+  components/
+    VoiceCall.jsx       ← Agora call logic + UI
+
+
+

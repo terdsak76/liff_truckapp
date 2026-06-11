@@ -1,0 +1,43 @@
+// VoiceCall.jsx
+async function startCall() {
+    const hasPermission = await checkMicPermission();
+    if (!hasPermission) return;
+
+    // ✅ Tell backend user is waiting
+    await fetch('/api/call/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            channelName,
+            idToken: liff.getIDToken(),
+            displayName: profile.displayName
+        })
+    });
+
+    await client.join(APP_ID, channelName, token);
+    const mic = await AgoraRTC.createMicrophoneAudioTrack();
+    await client.publish(mic);
+    setLocalTrack(mic);
+    setInCall(true);
+
+    client.on('user-published', async (user, mediaType) => {
+        await client.subscribe(user, mediaType);
+        if (mediaType === 'audio') user.audioTrack.play();
+    });
+}
+
+async function endCall() {
+    localTrack?.close();
+    await client.leave();
+    setInCall(false);
+
+    // ✅ Tell backend call ended
+    await fetch('/api/call/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            channelName,
+            idToken: liff.getIDToken()
+        })
+    });
+}
