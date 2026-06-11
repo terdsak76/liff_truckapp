@@ -3,7 +3,6 @@ import AgoraRTC from 'agora-rtc-sdk-ng';
 import liff from '@line/liff'
 
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-const APP_ID = import.meta.env.VITE_AGORA_APP_ID
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 APP_ID="2902d7480b1343ecae1389d10639ea6a"
 
