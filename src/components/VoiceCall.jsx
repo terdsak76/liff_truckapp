@@ -4,7 +4,7 @@ import liff from '@line/liff'
 
 const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-APP_ID="2902d7480b1343ecae1389d10639ea6a"
+const APP_ID = "2902d7480b1343ecae1389d10639ea6a"
 
 export default function VoiceCall({ channelName, token, profile }) {
   const [inCall, setInCall] = useState(false);
